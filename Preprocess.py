@@ -10,7 +10,7 @@ CAL_VAL = np.loadtxt("calibrated_value.txt")
 GAUSSIAN_SMOOTH_FILTER_SIZE = (7, 7)#(int(G_S_F_W), int(G_S_F_H)) #ini 5,5 # last best = 3,3
 ADAPTIVE_THRESH_BLOCK_SIZE = 19 #19 , last best = 19
 ADAPTIVE_THRESH_WEIGHT = 11 #9, last best = 11
-THRESHOLD_VALUE = 155
+THRESHOLD_VALUE = 255
 ##
 ###################################################################################################
 def preprocess(imgOriginal):
