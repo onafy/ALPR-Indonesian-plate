@@ -1,5 +1,6 @@
+
 # TrainAndTest.py
-import argparse
+
 import cv2
 import numpy as np
 import operator
@@ -7,6 +8,7 @@ import os
 
 # module level variables ##########################################################################
 MIN_CONTOUR_AREA = 100
+
 RESIZED_IMAGE_WIDTH = 20
 RESIZED_IMAGE_HEIGHT = 30
 
@@ -35,19 +37,6 @@ class ContourWithData():
 
 ###################################################################################################
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-d", "--image_testing",
-            help = "path for the images that you're going to test")
-    args = vars(ap.parse_args())
-    if args.get("image", True):
-        imgTestingNumbers = cv2.imread(args["image_testing"]) # read in training numbers image
-        if imgTestingNumbers is None:
-            print("error: image not read from file \n\n")        # print error message to std out
-            os.system("pause")                                  # pause so user can see error message
-            return
-    else:
-        print("Please add -d or --image_testing argument")
-
     allContoursWithData = []                # declare empty lists,
     validContoursWithData = []              # we will fill these shortly
 
@@ -72,6 +61,14 @@ def main():
     kNearest = cv2.ml.KNearest_create()                   # instantiate KNN object
 
     kNearest.train(npaFlattenedImages, cv2.ml.ROW_SAMPLE, npaClassifications)
+
+    imgTestingNumbers = cv2.imread("train_image/ASAS.png")          # read in testing numbers image
+
+    if imgTestingNumbers is None:                           # if image was not read successfully
+        print ("error: image not read from file \n\n")        # print error message to std out
+        os.system("pause")                                  # pause so user can see error message
+        return                                              # and exit function (which exits program)
+    # end if
 
     imgGray = cv2.cvtColor(imgTestingNumbers, cv2.COLOR_BGR2GRAY)       # get grayscale image
     imgBlurred = cv2.GaussianBlur(imgGray, (5,5), 0)                    # blur
@@ -146,3 +143,4 @@ def main():
 if __name__ == "__main__":
     main()
 # end if
+

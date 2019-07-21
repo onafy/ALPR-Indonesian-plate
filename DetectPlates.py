@@ -6,14 +6,16 @@ import math
 import Main
 import random
 
+import imutils
+
 import Preprocess
 import DetectChars
 import PossiblePlate
 import PossibleChar
 
 # module level variables ##########################################################################
-PLATE_WIDTH_PADDING_FACTOR = 1.1
-PLATE_HEIGHT_PADDING_FACTOR = 1.5
+PLATE_WIDTH_PADDING_FACTOR = 1.3
+PLATE_HEIGHT_PADDING_FACTOR = 1.42
 #1.3 dan 1.5
 
 ####################################################################################################
@@ -31,10 +33,51 @@ def detectPlatesInScene(imgOriginalScene):
             # find all possible chars in the scene,
             # this function first finds all contours, then only includes contours that could be chars (without comparison to other chars yet)
     listOfPossibleCharsInScene = findPossibleCharsInScene(imgThreshScene)
+    if Main.showSteps == True: # show steps #######################################################
+        print("step 2 - len(listOfPossibleCharsInScene) = " + str(
+            len(listOfPossibleCharsInScene)))  # 131 with MCLRNF1 image
+        
+        imgContours = np.zeros((height, width, 3), np.uint8)
+
+        contours = []
+
+        for possibleChar in listOfPossibleCharsInScene:
+            contours.append(possibleChar.contour)
+        # end for
+
+        cv2.drawContours(imgContours, contours, -1, Main.SCALAR_WHITE)
+        imgContours  = imutils.resize(imgContours, width = 450)
+        cv2.imshow("2b", imgContours)
+    # end if # show steps #########################################################################
+
+
 
             # given a list of all possible chars, find groups of matching chars
             # in the next steps each group of matching chars will attempt to be recognized as a plate
     listOfListsOfMatchingCharsInScene = DetectChars.findListOfListsOfMatchingChars(listOfPossibleCharsInScene)
+    if Main.showSteps == True: # show steps #######################################################
+        print("step 3 - listOfListsOfMatchingCharsInScene.Count = " + str(
+            len(listOfListsOfMatchingCharsInScene)))  # 13 with MCLRNF1 image
+
+        imgContours = np.zeros((height, width, 3), np.uint8)
+
+        for listOfMatchingChars in listOfListsOfMatchingCharsInScene:
+            intRandomBlue = random.randint(0, 255)
+            intRandomGreen = random.randint(0, 255)
+            intRandomRed = random.randint(0, 255)
+
+            contours = []
+
+            for matchingChar in listOfMatchingChars:
+                contours.append(matchingChar.contour)
+            # end for
+
+            cv2.drawContours(imgContours, contours, -1, (intRandomBlue, intRandomGreen, intRandomRed))
+        # end for
+
+        imgContours  = imutils.resize(imgContours, width = 450)
+        cv2.imshow("3", imgContours)
+    # end if # show steps #########################################################################
 
 
     for listOfMatchingChars in listOfListsOfMatchingCharsInScene:                   # for each group of matching chars
@@ -46,6 +89,32 @@ def detectPlatesInScene(imgOriginalScene):
     # end for
 
     #print("\n" + str(len(listOfPossiblePlates)) + " possible plates found")          # 13 with MCLRNF1 image
+    print("\n" + str(len(listOfPossiblePlates)) + " possible plates found")  # 13 with MCLRNF1 image
+
+    if Main.showSteps == True: # show steps #######################################################
+        print("\n")
+        imgContours  = imutils.resize(imgContours, width = 450)
+        cv2.imshow("4a", imgContours)
+
+        for i in range(0, len(listOfPossiblePlates)):
+            p2fRectPoints = cv2.boxPoints(listOfPossiblePlates[i].rrLocationOfPlateInScene)
+
+            cv2.line(imgContours, tuple(p2fRectPoints[0]), tuple(p2fRectPoints[1]), Main.SCALAR_RED, 2)
+            cv2.line(imgContours, tuple(p2fRectPoints[1]), tuple(p2fRectPoints[2]), Main.SCALAR_RED, 2)
+            cv2.line(imgContours, tuple(p2fRectPoints[2]), tuple(p2fRectPoints[3]), Main.SCALAR_RED, 2)
+            cv2.line(imgContours, tuple(p2fRectPoints[3]), tuple(p2fRectPoints[0]), Main.SCALAR_RED, 2)
+            imgContours  = imutils.resize(imgContours, width = 450)
+            cv2.imshow("4a", imgContours)
+
+            print("possible plate " + str(i) + ", click on any image and press a key to continue . . .")
+            
+            cv2.imshow("4b", listOfPossiblePlates[i].imgPlate)
+            cv2.waitKey(0)
+        # end for
+
+        print("\nplate detection complete, click on any image and press a key to begin char recognition . . .\n")
+        cv2.waitKey(0)
+    # end if # show steps #########################################################################
 
     return listOfPossiblePlates
 # end function
@@ -63,14 +132,26 @@ def findPossibleCharsInScene(imgThresh):
     imgContours = np.zeros((height, width, 3), np.uint8)
 
     for i in range(0, len(contours)):                       # for each contour
+        
+        if Main.showSteps == True: # show steps ###################################################
+            cv2.drawContours(imgContours, contours, i, Main.SCALAR_WHITE)
+        # end if # show steps #####################################################################
 
-        possibleChar = PossibleChar.PossibleChar(contours[i])
+        possibleChar = PossibleChar.PossibleChar(contours[i]) # Here we calculate the x,y,w,h,flatdiagonalsize,aspedctratio,area and (x,y) of the center of the rectangle that is bounding the contour.
 
         if DetectChars.checkIfPossibleChar(possibleChar):                   # if contour is a possible char, note this does not compare to other chars (yet) . . .
             intCountOfPossibleChars = intCountOfPossibleChars + 1           # increment count of possible chars
             listOfPossibleChars.append(possibleChar)                        # and add to list of possible chars
         # end if
     # end for
+    
+    if Main.showSteps == True: # show steps #######################################################
+        print("\nstep 2 - len(contours) = " + str(len(contours)))  # 2362 with MCLRNF1 image
+        print("step 2 - intCountOfPossibleChars = " + str(intCountOfPossibleChars))  # 131 with MCLRNF1 image
+        imgContours  = imutils.resize(imgContours, width = 450)
+        cv2.imshow("2a", imgContours)
+    # end if # show steps #########################################################################
+
 
     return listOfPossibleChars
 # end function
