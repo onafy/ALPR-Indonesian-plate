@@ -11,6 +11,7 @@ import DetectChars
 import DetectPlates
 import PossiblePlate
 
+
 import requests
 import time
 
@@ -21,7 +22,7 @@ SCALAR_YELLOW = (0.0, 255.0, 255.0)
 SCALAR_GREEN = (0.0, 255.0, 0.0)
 SCALAR_RED = (0.0, 0.0, 255.0)
 
-showSteps = True
+showSteps = False
 showStepss = False
 ###################################################################################################
 def main():
@@ -38,10 +39,10 @@ def main():
     # end if
     
 
-    imgOriginalScene  = cv2.imread("/home/pi/Downloads/gambar/banyak/28.jpg")
+    imgOriginalScene  = cv2.imread("/home/pi/Downloads/gambar/banyak/81.jpg")
     imgOriginalScene  = imutils.resize(imgOriginalScene, width = 1355)
 
-    imgGrayscale, imgThresh = pp.preprocess(imgOriginalScene)
+    #imgGrayscale, imgThresh = pp.preprocess(imgOriginalScene)
     if imgOriginalScene is None:                            # if image was not read successfully
         print("\nerror: image not read from file \n\n")  # print error message to std out
         os.system("pause")                                  # pause so user can see error message
@@ -108,6 +109,7 @@ def detectPlate(imgOriginalScene):
         listOfPossiblePlates.sort(key = lambda possiblePlate: len(possiblePlate.strChars), reverse = True)
         
         for i in range(0, len(listOfPossiblePlates)):
+            print("chars found in plate number " + str(i) + " = " + listOfPossiblePlates[i].strChars )
             charini = listOfPossiblePlates[i]
             twoChari = (charini.strChars)[:2]
             oneChari = (charini.strChars)[:1]
@@ -138,17 +140,22 @@ def detectPlate(imgOriginalScene):
                 plateResult = (licPlate.strChars)[1:]
                 cv2.imshow("imgThresh", licPlate.imgThresh)
         else :
-            licPlate = listBetulan[0]
-            print("\nlicense plate read from image = " + licPlate.strChars + "\n")  # write license plate text to std out
+            if len(listCadangan) == 0 :
+                licPlate = listBetulan[0]
+                plateResult = licPlate.strChars
+            else :
+                if (len(listCadangan[0].strChars) > len(listBetulan[0].strChars)) :
+                    licPlate = listCadangan[0]
+                    plateResult = licPlate.strChars[1:]
+                else :
+                    licPlate = listBetulan[0]
+                    plateResult = licPlate.strChars
+            print("\nlicense plate read from image = " + plateResult + "\n")  # write license plate text to std out
             print("----------------------------------------")
             cv2.imshow("imgPlate", licPlate.imgPlate)           # show crop of plate and threshold of plate
-            plateResult = licPlate.strChars
             cv2.imshow("imgThresh", licPlate.imgThresh)
             cv2.imshow("inbvert", np.invert(licPlate.imgThresh))
             cv2.imwrite("invert02.jpg", np.invert(licPlate.imgThresh))
-            
-
-
         #writeLicensePlateCharsOnImage(imgOriginalScene, licPlate)           # write license plate text on the image
 
         cv2.imshow("imgOriginalScene", imgOriginalScene)                # re-show scene image
